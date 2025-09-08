@@ -1,0 +1,38 @@
+name: secure_db
+description: A unified secure database package that provides encrypted storage using both Hive and SQLite with automatic encryption/decryption.
+version: 1.0.0
+homepage: https://github.com/yourusername/secure_db
+repository: https://github.com/yourusername/secure_db
+
+environment:
+  sdk: '>=2.17.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Hive dependencies
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # SQLite dependencies
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  sqflite_common_ffi: ^2.3.6
+
+  # Encryption
+  crypto: ^3.0.3
+  encrypt: ^5.0.1
+
+  # Utilities
+  meta: ^1.9.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.8
+
+flutter:
