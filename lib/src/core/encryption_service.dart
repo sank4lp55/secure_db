@@ -78,7 +78,7 @@ class EncryptionService {
       return newKey;
     } catch (e) {
       // Fallback to in-memory storage if secure storage fails
-      print('Secure storage not available, using fallback: $e');
+      // print('Secure storage not available, using fallback: $e');
       return _getFallbackKey(keyName);
     }
   }
@@ -124,7 +124,7 @@ class EncryptionService {
     try {
       await _secureStorage.delete(key: keyName);
     } catch (e) {
-      print('Failed to delete key from secure storage: $e');
+      // print('Failed to delete key from secure storage: $e');
     }
 
     // Also remove from fallback cache

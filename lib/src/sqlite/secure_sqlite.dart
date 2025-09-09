@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'secure_database.dart';
@@ -52,7 +52,7 @@ class SecureSQLite {
     final path = join(databasePath, databaseName);
 
     if (_config.enableLogging) {
-      print('Opening database at: $path');
+      debugPrint('Opening database at: $path');
     }
 
     // Open the underlying SQLite database
@@ -114,7 +114,7 @@ class SecureSQLite {
     await _encryptionService.deleteKey('sqlite_$databaseName');
 
     if (_config.enableLogging) {
-      print('Deleted database: $path');
+      debugPrint('Deleted database: $path');
     }
   }
 
@@ -144,7 +144,6 @@ class SecureSQLite {
 
   /// Lists all database files
   static Future<List<String>> listDatabases() async {
-
     try {
       // This would need platform-specific implementation
       // For now, return empty list
@@ -179,7 +178,7 @@ class SecureSQLite {
         await db.execute('VACUUM');
       } catch (e) {
         if (_config.enableLogging) {
-          print('Failed to vacuum database: $e');
+          debugPrint('Failed to vacuum database: $e');
         }
       }
     }
@@ -224,7 +223,7 @@ class SecureSQLite {
           results[dbName] = await db.rawQuery(sql, arguments);
         } catch (e) {
           if (_config.enableLogging) {
-            print('Failed to query database $dbName: $e');
+            debugPrint('Failed to query database $dbName: $e');
           }
           results[dbName] = [];
         }
@@ -245,7 +244,7 @@ class SecureSQLite {
       } catch (e) {
         health[entry.key] = false;
         if (_config.enableLogging) {
-          print('Database ${entry.key} failed health check: $e');
+          debugPrint('Database ${entry.key} failed health check: $e');
         }
       }
     }
@@ -266,7 +265,7 @@ class SecureSQLite {
     // This would need platform-specific implementation for file copying
     // For now, just log the operation
     if (_config.enableLogging) {
-      print('Backup requested for $databaseName to $backupPath');
+      debugPrint('Backup requested for $databaseName to $backupPath');
     }
   }
 
@@ -281,7 +280,7 @@ class SecureSQLite {
     // This would need platform-specific implementation for file copying
     // For now, just log the operation
     if (_config.enableLogging) {
-      print('Restore requested for $databaseName from $backupPath');
+      debugPrint('Restore requested for $databaseName from $backupPath');
     }
   }
 
@@ -293,7 +292,7 @@ class SecureSQLite {
         await db.execute('PRAGMA optimize');
       } catch (e) {
         if (_config.enableLogging) {
-          print('Failed to optimize database: $e');
+          debugPrint('Failed to optimize database: $e');
         }
       }
     }
@@ -306,7 +305,7 @@ class SecureSQLite {
         await db.execute('PRAGMA journal_mode=WAL');
       } catch (e) {
         if (_config.enableLogging) {
-          print('Failed to enable WAL mode: $e');
+          debugPrint('Failed to enable WAL mode: $e');
         }
       }
     }
