@@ -16,7 +16,8 @@ class SecureBox<T> {
     if (encryptedValue == null) return null;
 
     try {
-      final decryptedJson = _encryptionService.decrypt(encryptedValue, _encryptionKey);
+      final decryptedJson =
+          _encryptionService.decrypt(encryptedValue, _encryptionKey);
       final decodedValue = jsonDecode(decryptedJson);
       return decodedValue as T;
     } catch (e) {
@@ -28,7 +29,8 @@ class SecureBox<T> {
   Future<void> put(dynamic key, T value) async {
     try {
       final jsonValue = jsonEncode(value);
-      final encryptedValue = _encryptionService.encrypt(jsonValue, _encryptionKey);
+      final encryptedValue =
+          _encryptionService.encrypt(jsonValue, _encryptionKey);
       await _box.put(key.toString(), encryptedValue);
     } catch (e) {
       throw Exception('Failed to encrypt and store value for key "$key": $e');
@@ -52,7 +54,8 @@ class SecureBox<T> {
   Iterable<T> get values {
     return _box.values.map((encryptedValue) {
       try {
-        final decryptedJson = _encryptionService.decrypt(encryptedValue, _encryptionKey);
+        final decryptedJson =
+            _encryptionService.decrypt(encryptedValue, _encryptionKey);
         final decodedValue = jsonDecode(decryptedJson);
         return decodedValue as T;
       } catch (e) {

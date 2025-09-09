@@ -34,7 +34,8 @@ class SecureDbDemo extends StatefulWidget {
   State<SecureDbDemo> createState() => _SecureDbDemoState();
 }
 
-class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMixin {
+class _SecureDbDemoState extends State<SecureDbDemo>
+    with TickerProviderStateMixin {
   late TabController _tabController;
 
   // Hive demo data
@@ -83,7 +84,6 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
         },
       );
       _refreshSqliteData();
-
     } catch (e) {
       _showSnackBar('Error initializing databases: $e', isError: true);
     }
@@ -252,10 +252,10 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
 
       _showSnackBar(
         'Quick API Demo:\n'
-            'String: $demoString\n'
-            'Int: $demoInt\n'
-            'Bool: $demoBool\n'
-            'Map: ${demoMap?['user']}',
+        'String: $demoString\n'
+        'Int: $demoInt\n'
+        'Bool: $demoBool\n'
+        'Map: ${demoMap?['user']}',
       );
     } catch (e) {
       _showSnackBar('Error with Quick API: $e', isError: true);
@@ -306,7 +306,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
   }
 
   Widget _buildHiveTab() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -327,6 +327,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
                     decoration: const InputDecoration(
                       labelText: 'Key (required)',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -335,6 +336,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
                     decoration: const InputDecoration(
                       labelText: 'Name (required)',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -343,6 +345,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
                     decoration: const InputDecoration(
                       labelText: 'Email (required)',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -351,6 +354,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
                     decoration: const InputDecoration(
                       labelText: 'Phone (optional)',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -383,51 +387,54 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          Expanded(
-            child: _hiveData.isEmpty
-                ? const Center(
-              child: Text(
-                'No Hive data yet.\nAdd some users using the form above.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            )
-                : ListView.builder(
-              itemCount: _hiveData.length,
-              itemBuilder: (context, index) {
-                final entry = _hiveData[index];
-                final data = entry.value;
-                return Card(
-                  child: ListTile(
-                    title: Text(
-                      '${data['name']} (${entry.key})',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Email: ${data['email']}'),
-                        if (data['phone']?.isNotEmpty == true)
-                          Text('Phone: ${data['phone']}'),
-                        Text('Created: ${data['created_at']}'),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteHiveData(entry.key),
+          _hiveData.isEmpty
+              ? Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Text(
+                        'No Hive data yet.\nAdd some users using the form above.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
+                )
+              : Column(
+                  children: _hiveData.map((entry) {
+                    final data = entry.value;
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        title: Text(
+                          '${data['name']} (${entry.key})',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Email: ${data['email']}'),
+                            if (data['phone']?.isNotEmpty == true)
+                              Text('Phone: ${data['phone']}'),
+                            Text('Created: ${data['created_at']}'),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteHiveData(entry.key),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+          const SizedBox(height: 80), // Bottom padding for safe area
         ],
       ),
     );
   }
 
   Widget _buildSqliteTab() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -448,6 +455,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
                     decoration: const InputDecoration(
                       labelText: 'Name (required)',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -456,6 +464,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
                     decoration: const InputDecoration(
                       labelText: 'Email (required)',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -464,6 +473,7 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
                     decoration: const InputDecoration(
                       labelText: 'Phone (will be encrypted)',
                       border: OutlineInputBorder(),
+                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -496,61 +506,65 @@ class _SecureDbDemoState extends State<SecureDbDemo> with TickerProviderStateMix
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          Expanded(
-            child: _sqliteData.isEmpty
-                ? const Center(
-              child: Text(
-                'No SQLite data yet.\nAdd some users using the form above.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            )
-                : ListView.builder(
-              itemCount: _sqliteData.length,
-              itemBuilder: (context, index) {
-                final user = _sqliteData[index];
-                Map<String, dynamic>? personalData;
-
-                try {
-                  personalData = jsonDecode(user['personal_data'] as String);
-                } catch (e) {
-                  personalData = null;
-                }
-
-                return Card(
-                  child: ListTile(
-                    title: Text(
-                      '${user['name']} (ID: ${user['id']})',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Email: ${user['email']}'),
-                        if (personalData != null) ...[
-                          Text('Phone: ${personalData['phone']} 🔒'),
-                          Text('SSN: ${personalData['ssn']} 🔒'),
-                          Text('Address: ${personalData['address']} 🔒'),
-                        ],
-                        Text('Created: ${DateTime.fromMillisecondsSinceEpoch(user['created_at'] as int)}'),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteSqliteData(user['id'] as int),
+          _sqliteData.isEmpty
+              ? Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Text(
+                        'No SQLite data yet.\nAdd some users using the form above.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
+                )
+              : Column(
+                  children: _sqliteData.map((user) {
+                    Map<String, dynamic>? personalData;
+                    try {
+                      personalData =
+                          jsonDecode(user['personal_data'] as String);
+                    } catch (e) {
+                      personalData = null;
+                    }
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        title: Text(
+                          '${user['name']} (ID: ${user['id']})',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Email: ${user['email']}'),
+                            if (personalData != null) ...[
+                              Text('Phone: ${personalData['phone']} 🔒'),
+                              Text('SSN: ${personalData['ssn']} 🔒'),
+                              Text('Address: ${personalData['address']} 🔒'),
+                            ],
+                            Text(
+                                'Created: ${DateTime.fromMillisecondsSinceEpoch(user['created_at'] as int)}'),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteSqliteData(user['id'] as int),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+          const SizedBox(height: 80), // Bottom padding for safe area
         ],
       ),
     );
   }
 
   Widget _buildQuickApiTab() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -638,6 +652,7 @@ int? score = await SecureDB.getInt('score');''',
               ),
             ),
           ),
+          const SizedBox(height: 80), // Bottom padding for safe area
         ],
       ),
     );

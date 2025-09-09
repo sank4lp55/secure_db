@@ -137,13 +137,57 @@ class DbUtils {
 
     // Check for SQL reserved words
     final reservedWords = [
-      'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP', 'ALTER',
-      'TABLE', 'INDEX', 'VIEW', 'DATABASE', 'SCHEMA', 'TRIGGER', 'FUNCTION',
-      'PROCEDURE', 'WHERE', 'FROM', 'JOIN', 'INNER', 'LEFT', 'RIGHT', 'FULL',
-      'ON', 'GROUP', 'ORDER', 'BY', 'HAVING', 'UNION', 'INTERSECT', 'EXCEPT',
-      'AS', 'AND', 'OR', 'NOT', 'IN', 'EXISTS', 'BETWEEN', 'LIKE', 'IS',
-      'NULL', 'TRUE', 'FALSE', 'PRIMARY', 'KEY', 'FOREIGN', 'REFERENCES',
-      'UNIQUE', 'CHECK', 'DEFAULT', 'AUTO_INCREMENT', 'SERIAL'
+      'SELECT',
+      'INSERT',
+      'UPDATE',
+      'DELETE',
+      'CREATE',
+      'DROP',
+      'ALTER',
+      'TABLE',
+      'INDEX',
+      'VIEW',
+      'DATABASE',
+      'SCHEMA',
+      'TRIGGER',
+      'FUNCTION',
+      'PROCEDURE',
+      'WHERE',
+      'FROM',
+      'JOIN',
+      'INNER',
+      'LEFT',
+      'RIGHT',
+      'FULL',
+      'ON',
+      'GROUP',
+      'ORDER',
+      'BY',
+      'HAVING',
+      'UNION',
+      'INTERSECT',
+      'EXCEPT',
+      'AS',
+      'AND',
+      'OR',
+      'NOT',
+      'IN',
+      'EXISTS',
+      'BETWEEN',
+      'LIKE',
+      'IS',
+      'NULL',
+      'TRUE',
+      'FALSE',
+      'PRIMARY',
+      'KEY',
+      'FOREIGN',
+      'REFERENCES',
+      'UNIQUE',
+      'CHECK',
+      'DEFAULT',
+      'AUTO_INCREMENT',
+      'SERIAL'
     ];
 
     return !reservedWords.contains(name.toUpperCase());
@@ -191,8 +235,10 @@ class DbUtils {
     if (data is Map) {
       return data.entries.fold<int>(
         0,
-            (sum, entry) =>
-        sum + estimateStorageSize(entry.key) + estimateStorageSize(entry.value),
+        (sum, entry) =>
+            sum +
+            estimateStorageSize(entry.key) +
+            estimateStorageSize(entry.value),
       );
     }
 
@@ -247,12 +293,13 @@ class DbUtils {
 
   /// Generates a random string for testing
   static String generateRandomString(int length) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
     return String.fromCharCodes(
       Iterable.generate(
         length,
-            (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
       ),
     );
   }
@@ -291,7 +338,9 @@ class DbUtils {
 
   /// Builds connection string from parameters
   static String buildConnectionString(Map<String, String> params) {
-    return params.entries.map((entry) => '${entry.key}=${entry.value}').join(';');
+    return params.entries
+        .map((entry) => '${entry.key}=${entry.value}')
+        .join(';');
   }
 
   /// Validates database schema
@@ -328,9 +377,9 @@ class DbUtils {
 
   /// Merges two maps recursively
   static Map<String, dynamic> mergeMaps(
-      Map<String, dynamic> map1,
-      Map<String, dynamic> map2,
-      ) {
+    Map<String, dynamic> map1,
+    Map<String, dynamic> map2,
+  ) {
     final result = Map<String, dynamic>.from(map1);
 
     for (final entry in map2.entries) {
@@ -351,10 +400,10 @@ class DbUtils {
 
   /// Flattens a nested map
   static Map<String, dynamic> flattenMap(
-      Map<String, dynamic> map, {
-        String separator = '.',
-        String prefix = '',
-      }) {
+    Map<String, dynamic> map, {
+    String separator = '.',
+    String prefix = '',
+  }) {
     final result = <String, dynamic>{};
 
     for (final entry in map.entries) {

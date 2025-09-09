@@ -4,7 +4,8 @@ import '../core/encryption_service.dart';
 
 /// Hive implementation for SecureDB
 class SecureHive {
-  static final EncryptionService _encryptionService = EncryptionService.instance;
+  static final EncryptionService _encryptionService =
+      EncryptionService.instance;
   static final Set<String> _openBoxes = <String>{}; // Track open boxes manually
 
   /// Initialize Hive
@@ -19,14 +20,16 @@ class SecureHive {
   ///
   /// Returns a [SecureBox] instance
   static Future<SecureBox<T>> openBox<T>(
-      String boxName, {
-        String? encryptionKey,
-      }) async {
+    String boxName, {
+    String? encryptionKey,
+  }) async {
     // Generate or retrieve encryption key
-    final key = encryptionKey ?? await _encryptionService.getOrCreateKey('hive_$boxName');
+    final key = encryptionKey ??
+        await _encryptionService.getOrCreateKey('hive_$boxName');
 
     // Create Hive encryption cipher
-    final encryptionCipher = HiveAesCipher(_encryptionService.base64ToUint8List(key));
+    final encryptionCipher =
+        HiveAesCipher(_encryptionService.base64ToUint8List(key));
 
     // Open the underlying Hive box with encryption
     final box = await Hive.openBox<String>(

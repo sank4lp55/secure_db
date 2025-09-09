@@ -3,15 +3,25 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Service for handling encryption and key management across both Hive and SQLite
 class EncryptionService {
   static const String _keyPrefix = 'secure_db_key_';
-  static const MethodChannel _channel = MethodChannel('secure_db/keychain');
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
 
   static EncryptionService? _instance;
   static EncryptionService get instance => _instance ??= EncryptionService._();
+
+  // Fallback in-memory storage for when secure storage fails
+  final Map<String, String> _fallbackKeyCache = {};
 
   EncryptionService._();
 
@@ -52,27 +62,37 @@ class EncryptionService {
   Future<String> getOrCreateKey(String name) async {
     final keyName = '$_keyPrefix$name';
 
-    // Try to get existing key from secure storage
     try {
-      final existingKey = await _getSecureKey(keyName);
+      // Try to get existing key from secure storage
+      final existingKey = await _secureStorage.read(key: keyName);
       if (existingKey != null && existingKey.isNotEmpty) {
         return existingKey;
       }
+
+      // Generate new key if none exists
+      final newKey = _generateKey();
+
+      // Store the new key securely
+      await _secureStorage.write(key: keyName, value: newKey);
+
+      return newKey;
     } catch (e) {
-      // Key doesn't exist or secure storage not available
+      // Fallback to in-memory storage if secure storage fails
+      print('Secure storage not available, using fallback: $e');
+      return _getFallbackKey(keyName);
+    }
+  }
+
+  /// Fallback key management when secure storage is unavailable
+  String _getFallbackKey(String keyName) {
+    if (_fallbackKeyCache.containsKey(keyName)) {
+      return _fallbackKeyCache[keyName]!;
     }
 
-    // Generate new key
-    final newKey = _generateKey();
-
-    // Store key securely
-    try {
-      await _storeSecureKey(keyName, newKey);
-    } catch (e) {
-      print('Warning: Could not store key securely: $e');
-    }
-
-    return newKey;
+    // Generate a consistent key for this session
+    final key = _generateConsistentKey(keyName);
+    _fallbackKeyCache[keyName] = key;
+    return key;
   }
 
   /// Generates a cryptographically secure random key
@@ -85,37 +105,48 @@ class EncryptionService {
     return base64Encode(bytes);
   }
 
-  /// Stores a key securely using platform-specific storage
-  Future<void> _storeSecureKey(String keyName, String key) async {
-    try {
-      await _channel.invokeMethod('storeKey', {
-        'key': keyName,
-        'value': key,
-      });
-    } catch (e) {
-      // Fallback storage could be implemented here
-      print('Secure storage not available: $e');
-    }
-  }
+  /// Generates a consistent key based on name (fallback only)
+  String _generateConsistentKey(String keyName) {
+    final baseString = 'secure_db_fallback_$keyName';
+    final hash = sha256.convert(utf8.encode(baseString));
 
-  /// Retrieves a key from secure storage
-  Future<String?> _getSecureKey(String keyName) async {
-    try {
-      final result = await _channel.invokeMethod('getKey', {'key': keyName});
-      return result as String?;
-    } catch (e) {
-      return null;
+    final random = Random(hash.toString().hashCode);
+    final bytes = Uint8List(32);
+    for (int i = 0; i < bytes.length; i++) {
+      bytes[i] = random.nextInt(256);
     }
+    return base64Encode(bytes);
   }
 
   /// Deletes a key from secure storage
   Future<void> deleteKey(String name) async {
     final keyName = '$_keyPrefix$name';
     try {
-      await _channel.invokeMethod('deleteKey', {'key': keyName});
+      await _secureStorage.delete(key: keyName);
     } catch (e) {
-      print('Failed to delete key: $e');
+      print('Failed to delete key from secure storage: $e');
     }
+
+    // Also remove from fallback cache
+    _fallbackKeyCache.remove(keyName);
+  }
+
+  /// Deletes all keys (useful for logout/reset)
+  Future<void> deleteAllKeys() async {
+    try {
+      // Get all keys that belong to this package
+      final allKeys = await _secureStorage.readAll();
+      for (final key in allKeys.keys) {
+        if (key.startsWith(_keyPrefix)) {
+          await _secureStorage.delete(key: key);
+        }
+      }
+    } catch (e) {
+      print('Failed to delete all keys from secure storage: $e');
+    }
+
+    // Clear fallback cache
+    _fallbackKeyCache.clear();
   }
 
   /// Converts base64 string to Uint8List for Hive
@@ -135,12 +166,27 @@ class EncryptionService {
     final saltBytes = utf8.encode(salt);
     final passwordBytes = utf8.encode(password);
 
-    // Simple PBKDF2 implementation (in production, use proper PBKDF2)
+    // Simple PBKDF2 implementation (in production, consider using pointycastle for proper PBKDF2)
     var key = passwordBytes + saltBytes;
     for (int i = 0; i < 10000; i++) {
       key = sha256.convert(key).bytes;
     }
 
     return base64Encode(key.sublist(0, 32));
+  }
+
+  /// Check if secure storage is available
+  Future<bool> isSecureStorageAvailable() async {
+    try {
+      await _secureStorage.read(key: 'test_availability');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Clear fallback cache (useful for testing)
+  void clearFallbackCache() {
+    _fallbackKeyCache.clear();
   }
 }

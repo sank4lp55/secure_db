@@ -30,7 +30,8 @@ class DatabaseException extends SecureDbException {
 class BoxException extends SecureDbException {
   final String boxName;
 
-  const BoxException(this.boxName, super.message, [super.cause, super.stackTrace]);
+  const BoxException(this.boxName, super.message,
+      [super.cause, super.stackTrace]);
 
   @override
   String toString() => 'BoxException[$boxName]: $message';
@@ -66,12 +67,12 @@ class MigrationException extends SecureDbException {
   final int toVersion;
 
   const MigrationException(
-      this.fromVersion,
-      this.toVersion,
-      super.message, [
-        super.cause,
-        super.stackTrace,
-      ]);
+    this.fromVersion,
+    this.toVersion,
+    super.message, [
+    super.cause,
+    super.stackTrace,
+  ]);
 
   @override
   String toString() => 'MigrationException[$fromVersion->$toVersion]: $message';
@@ -89,7 +90,8 @@ class TransactionException extends SecureDbException {
 class ValidationException extends SecureDbException {
   final String field;
 
-  const ValidationException(this.field, super.message, [super.cause, super.stackTrace]);
+  const ValidationException(this.field, super.message,
+      [super.cause, super.stackTrace]);
 
   @override
   String toString() => 'ValidationException[$field]: $message';
@@ -103,7 +105,8 @@ class ClosedDatabaseException extends SecureDbException {
       : super('Database "$databaseName" is closed');
 
   @override
-  String toString() => 'ClosedDatabaseException: Database "$databaseName" is closed';
+  String toString() =>
+      'ClosedDatabaseException: Database "$databaseName" is closed';
 }
 
 /// Exception thrown when trying to access non-existent resources
@@ -115,12 +118,14 @@ class NotFoundException extends SecureDbException {
       : super('$resourceType "$resourceName" not found');
 
   @override
-  String toString() => 'NotFoundException: $resourceType "$resourceName" not found';
+  String toString() =>
+      'NotFoundException: $resourceType "$resourceName" not found';
 }
 
 /// Exception thrown when operations are not supported
 class UnsupportedOperationException extends SecureDbException {
-  const UnsupportedOperationException(super.message, [super.cause, super.stackTrace]);
+  const UnsupportedOperationException(super.message,
+      [super.cause, super.stackTrace]);
 
   @override
   String toString() => 'UnsupportedOperationException: $message';
@@ -138,7 +143,8 @@ class ConcurrencyException extends SecureDbException {
 class SecureDbExceptions {
   const SecureDbExceptions._();
 
-  static EncryptionException encryptionFailed(String operation, [dynamic cause]) {
+  static EncryptionException encryptionFailed(String operation,
+      [dynamic cause]) {
     return EncryptionException(
       'Failed to $operation data',
       cause,
@@ -146,7 +152,8 @@ class SecureDbExceptions {
     );
   }
 
-  static DatabaseException databaseOperationFailed(String operation, [dynamic cause]) {
+  static DatabaseException databaseOperationFailed(String operation,
+      [dynamic cause]) {
     return DatabaseException(
       'Database operation failed: $operation',
       cause,
@@ -154,7 +161,8 @@ class SecureDbExceptions {
     );
   }
 
-  static BoxException boxOperationFailed(String boxName, String operation, [dynamic cause]) {
+  static BoxException boxOperationFailed(String boxName, String operation,
+      [dynamic cause]) {
     return BoxException(
       boxName,
       'Box operation failed: $operation',
@@ -171,7 +179,8 @@ class SecureDbExceptions {
     );
   }
 
-  static InitializationException initializationFailed(String component, [dynamic cause]) {
+  static InitializationException initializationFailed(String component,
+      [dynamic cause]) {
     return InitializationException(
       'Failed to initialize $component',
       cause,
@@ -187,7 +196,8 @@ class SecureDbExceptions {
     );
   }
 
-  static MigrationException migrationFailed(int fromVersion, int toVersion, [dynamic cause]) {
+  static MigrationException migrationFailed(int fromVersion, int toVersion,
+      [dynamic cause]) {
     return MigrationException(
       fromVersion,
       toVersion,
@@ -197,7 +207,8 @@ class SecureDbExceptions {
     );
   }
 
-  static TransactionException transactionFailed(String reason, [dynamic cause]) {
+  static TransactionException transactionFailed(String reason,
+      [dynamic cause]) {
     return TransactionException(
       'Transaction failed: $reason',
       cause,

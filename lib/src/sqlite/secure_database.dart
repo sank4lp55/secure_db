@@ -9,7 +9,8 @@ class SecureDatabase {
   final EncryptionService _encryptionService;
   final String _encryptionKey;
 
-  SecureDatabase(DatabaseExecutor database, this._encryptionService, this._encryptionKey)
+  SecureDatabase(
+      DatabaseExecutor database, this._encryptionService, this._encryptionKey)
       : _database = database;
 
   /// Execute a raw SQL command
@@ -19,20 +20,20 @@ class SecureDatabase {
 
   /// Execute a SELECT query and return encrypted results
   Future<List<Map<String, Object?>>> rawQuery(
-      String sql, [
-        List<Object?>? arguments,
-      ]) async {
+    String sql, [
+    List<Object?>? arguments,
+  ]) async {
     return await _database.rawQuery(sql, arguments);
   }
 
   /// Insert data with automatic encryption of specified columns
   Future<int> insert(
-      String table,
-      Map<String, Object?> values, {
-        String? nullColumnHack,
-        ConflictAlgorithm? conflictAlgorithm,
-        List<String> encryptedColumns = const [],
-      }) async {
+    String table,
+    Map<String, Object?> values, {
+    String? nullColumnHack,
+    ConflictAlgorithm? conflictAlgorithm,
+    List<String> encryptedColumns = const [],
+  }) async {
     final encryptedValues = _encryptColumns(values, encryptedColumns);
     return await _database.insert(
       table,
@@ -44,13 +45,13 @@ class SecureDatabase {
 
   /// Update data with automatic encryption of specified columns
   Future<int> update(
-      String table,
-      Map<String, Object?> values, {
-        String? where,
-        List<Object?>? whereArgs,
-        ConflictAlgorithm? conflictAlgorithm,
-        List<String> encryptedColumns = const [],
-      }) async {
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+    ConflictAlgorithm? conflictAlgorithm,
+    List<String> encryptedColumns = const [],
+  }) async {
     final encryptedValues = _encryptColumns(values, encryptedColumns);
     return await _database.update(
       table,
@@ -63,18 +64,18 @@ class SecureDatabase {
 
   /// Query data with automatic decryption of specified columns
   Future<List<Map<String, Object?>>> query(
-      String table, {
-        bool? distinct,
-        List<String>? columns,
-        String? where,
-        List<Object?>? whereArgs,
-        String? groupBy,
-        String? having,
-        String? orderBy,
-        int? limit,
-        int? offset,
-        List<String> encryptedColumns = const [],
-      }) async {
+    String table, {
+    bool? distinct,
+    List<String>? columns,
+    String? where,
+    List<Object?>? whereArgs,
+    String? groupBy,
+    String? having,
+    String? orderBy,
+    int? limit,
+    int? offset,
+    List<String> encryptedColumns = const [],
+  }) async {
     final results = await _database.query(
       table,
       distinct: distinct,
@@ -93,10 +94,10 @@ class SecureDatabase {
 
   /// Delete records from table
   Future<int> delete(
-      String table, {
-        String? where,
-        List<Object?>? whereArgs,
-      }) async {
+    String table, {
+    String? where,
+    List<Object?>? whereArgs,
+  }) async {
     return await _database.delete(
       table,
       where: where,
@@ -106,11 +107,11 @@ class SecureDatabase {
 
   /// Insert or update data (UPSERT)
   Future<int> insertOrUpdate(
-      String table,
-      Map<String, Object?> values, {
-        List<String> conflictColumns = const [],
-        List<String> encryptedColumns = const [],
-      }) async {
+    String table,
+    Map<String, Object?> values, {
+    List<String> conflictColumns = const [],
+    List<String> encryptedColumns = const [],
+  }) async {
     final encryptedValues = _encryptColumns(values, encryptedColumns);
 
     if (conflictColumns.isEmpty) {
@@ -130,15 +131,18 @@ class SecureDatabase {
       ON CONFLICT(${conflictColumns.join(', ')}) DO UPDATE SET $updateClauses
     ''';
 
-    final result = await _database.rawInsert(sql, encryptedValues.values.toList());
+    final result =
+        await _database.rawInsert(sql, encryptedValues.values.toList());
     return result;
   }
 
   /// Execute multiple operations in a transaction
-  Future<T> transaction<T>(Future<T> Function(SecureDatabase txn) action) async {
+  Future<T> transaction<T>(
+      Future<T> Function(SecureDatabase txn) action) async {
     if (_database is Database) {
       return await (_database as Database).transaction<T>((txn) async {
-        final secureTxn = SecureDatabase(txn, _encryptionService, _encryptionKey);
+        final secureTxn =
+            SecureDatabase(txn, _encryptionService, _encryptionKey);
         return await action(secureTxn);
       });
     } else {
@@ -198,12 +202,12 @@ class SecureDatabase {
 
   /// Create a table with automatic encryption support
   Future<void> createTable(
-      String tableName,
-      Map<String, String> columns, {
-        List<String> primaryKey = const [],
-        List<String> encryptedColumns = const [],
-        Map<String, String> constraints = const {},
-      }) async {
+    String tableName,
+    Map<String, String> columns, {
+    List<String> primaryKey = const [],
+    List<String> encryptedColumns = const [],
+    Map<String, String> constraints = const {},
+  }) async {
     final columnDefinitions = <String>[];
 
     for (final entry in columns.entries) {
@@ -218,7 +222,8 @@ class SecureDatabase {
       columnDefinitions.add('PRIMARY KEY (${primaryKey.join(', ')})');
     }
 
-    final sql = 'CREATE TABLE IF NOT EXISTS $tableName (${columnDefinitions.join(', ')})';
+    final sql =
+        'CREATE TABLE IF NOT EXISTS $tableName (${columnDefinitions.join(', ')})';
     await execute(sql);
 
     // Store metadata about encrypted columns
@@ -300,9 +305,9 @@ class SecureDatabase {
 
   /// Encrypt specified columns in a map
   Map<String, Object?> _encryptColumns(
-      Map<String, Object?> values,
-      List<String> encryptedColumns,
-      ) {
+    Map<String, Object?> values,
+    List<String> encryptedColumns,
+  ) {
     if (encryptedColumns.isEmpty) return values;
 
     final result = <String, Object?>{};
@@ -310,7 +315,8 @@ class SecureDatabase {
     for (final entry in values.entries) {
       if (encryptedColumns.contains(entry.key) && entry.value != null) {
         final jsonValue = jsonEncode(entry.value);
-        result[entry.key] = _encryptionService.encrypt(jsonValue, _encryptionKey);
+        result[entry.key] =
+            _encryptionService.encrypt(jsonValue, _encryptionKey);
       } else {
         result[entry.key] = entry.value;
       }
@@ -321,9 +327,9 @@ class SecureDatabase {
 
   /// Decrypt specified columns in query results
   List<Map<String, Object?>> _decryptResults(
-      List<Map<String, Object?>> results,
-      List<String> encryptedColumns,
-      ) {
+    List<Map<String, Object?>> results,
+    List<String> encryptedColumns,
+  ) {
     if (encryptedColumns.isEmpty) return results;
 
     return results.map((row) {
@@ -351,7 +357,8 @@ class SecureDatabase {
   }
 
   /// Store table metadata for encrypted columns
-  Future<void> _storeTableMetadata(String tableName, List<String> encryptedColumns) async {
+  Future<void> _storeTableMetadata(
+      String tableName, List<String> encryptedColumns) async {
     await execute('''
       CREATE TABLE IF NOT EXISTS _secure_db_metadata (
         table_name TEXT PRIMARY KEY,
@@ -413,10 +420,10 @@ class BatchOperation {
   });
 
   factory BatchOperation.insert(
-      String table,
-      Map<String, Object?> values, {
-        List<String> encryptedColumns = const [],
-      }) {
+    String table,
+    Map<String, Object?> values, {
+    List<String> encryptedColumns = const [],
+  }) {
     return BatchOperation(
       type: BatchOperationType.insert,
       table: table,
@@ -426,12 +433,12 @@ class BatchOperation {
   }
 
   factory BatchOperation.update(
-      String table,
-      Map<String, Object?> values, {
-        String? where,
-        List<Object?>? whereArgs,
-        List<String> encryptedColumns = const [],
-      }) {
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+    List<String> encryptedColumns = const [],
+  }) {
     return BatchOperation(
       type: BatchOperationType.update,
       table: table,
@@ -443,10 +450,10 @@ class BatchOperation {
   }
 
   factory BatchOperation.delete(
-      String table, {
-        String? where,
-        List<Object?>? whereArgs,
-      }) {
+    String table, {
+    String? where,
+    List<Object?>? whereArgs,
+  }) {
     return BatchOperation(
       type: BatchOperationType.delete,
       table: table,
@@ -456,9 +463,9 @@ class BatchOperation {
   }
 
   factory BatchOperation.rawQuery(
-      String sql,
-      List<Object?>? arguments,
-      ) {
+    String sql,
+    List<Object?>? arguments,
+  ) {
     return BatchOperation(
       type: BatchOperationType.rawInsert,
       table: '',

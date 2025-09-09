@@ -1,16 +1,142 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:secure_db/secure_db.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
+
+// Mock implementation of PathProviderPlatform for testing
+class MockPathProviderPlatform extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  @override
+  Future<String?> getTemporaryPath() async {
+    return Directory.systemTemp.path;
+  }
+
+  @override
+  Future<String?> getApplicationSupportPath() async {
+    final dir = Directory('${Directory.systemTemp.path}/test_support');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir.path;
+  }
+
+  @override
+  Future<String?> getLibraryPath() async {
+    return null;
+  }
+
+  @override
+  Future<String?> getApplicationDocumentsPath() async {
+    final dir = Directory('${Directory.systemTemp.path}/test_documents');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir.path;
+  }
+
+  @override
+  Future<String?> getExternalStoragePath() async {
+    return null;
+  }
+
+  @override
+  Future<List<String>?> getExternalCachePaths() async {
+    return null;
+  }
+
+  @override
+  Future<List<String>?> getExternalStoragePaths({
+    StorageDirectory? type,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<String?> getDownloadsPath() async {
+    return null;
+  }
+}
+
+// Mock implementation for the secure storage plugin's method channel
+class MockSecureStorage {
+  // Singleton instance
+  static final MockSecureStorage _instance = MockSecureStorage._internal();
+  factory MockSecureStorage() => _instance;
+  MockSecureStorage._internal();
+
+  final Map<String, String> _storage = {};
+
+  Future<String?> readKey({required String key}) async {
+    return _storage[key];
+  }
+
+  Future<void> storeKey({required String key, required String value}) async {
+    _storage[key] = value;
+  }
+
+  Future<void> deleteKey({required String key}) async {
+    _storage.remove(key);
+  }
+
+  void clear() {
+    _storage.clear();
+  }
+}
 
 void main() {
+  // Get the singleton instance of the mock secure storage
+  final mockSecureStorage = MockSecureStorage();
+
   // Initialize sqflite_common_ffi for desktop testing
   setUpAll(() async {
+    // Set up the mock path provider
+    PathProviderPlatform.instance = MockPathProviderPlatform();
+
+    // Mock the secure_db/keychain method channel
+    TestWidgetsFlutterBinding.ensureInitialized();
+    const MethodChannel('secure_db/keychain')
+        .setMockMethodCallHandler((MethodCall methodCall) async {
+      switch (methodCall.method) {
+        case 'readKey':
+          return await mockSecureStorage.readKey(key: methodCall.arguments['key']);
+        case 'storeKey':
+          await mockSecureStorage.storeKey(key: methodCall.arguments['key'], value: methodCall.arguments['value']);
+          return null;
+        case 'deleteKey':
+          await mockSecureStorage.deleteKey(key: methodCall.arguments['key']);
+          return null;
+        default:
+          throw MissingPluginException('No implementation found for method ${methodCall.method} on channel secure_db/keychain');
+      }
+    });
+
     // Initialize FFI for desktop testing
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+  });
 
-    // Initialize SecureDB for testing
+  setUp(() async {
+    // Clear mock storage and re-initialize SecureDB before each test
+    mockSecureStorage.clear();
     await SecureDB.init();
+  });
+
+  tearDownAll(() async {
+    // Clean up test directories
+    final tempPath = Directory.systemTemp.path;
+    final testDirs = [
+      Directory('$tempPath/test_documents'),
+      Directory('$tempPath/test_support'),
+    ];
+
+    for (final dir in testDirs) {
+      if (await dir.exists()) {
+        await dir.delete(recursive: true);
+      }
+    }
   });
 
   group('SecureDB Tests', () {
@@ -47,8 +173,10 @@ void main() {
 
         // Invalid table names
         expect(DbUtils.isValidTableName(''), false);
-        expect(DbUtils.isValidTableName('123table'), false); // Starts with number
-        expect(DbUtils.isValidTableName('table-name'), false); // Contains hyphen
+        expect(
+            DbUtils.isValidTableName('123table'), false); // Starts with number
+        expect(
+            DbUtils.isValidTableName('table-name'), false); // Contains hyphen
         expect(DbUtils.isValidTableName('SELECT'), false); // Reserved word
         expect(DbUtils.isValidTableName('CREATE'), false); // Reserved word
       });
@@ -72,9 +200,6 @@ void main() {
         expect(DbUtils.isJsonSerializable(true), true);
         expect(DbUtils.isJsonSerializable(['a', 'b', 'c']), true);
         expect(DbUtils.isJsonSerializable({'key': 'value'}), true);
-
-        // Note: Circular reference test might not work as expected
-        // Keep it simple for now
       });
 
       test('converts data to JSON serializable format', () {
@@ -133,7 +258,8 @@ void main() {
 
       test('validates encryption key format', () {
         // Valid base64 key with 32+ bytes
-        final validKey = 'dGhpcyBpcyBhIHZhbGlkIGVuY3J5cHRpb24ga2V5IGZvciBkYXRhYmFzZQ==';
+        final validKey =
+            'dGhpcyBpcyBhIHZhbGlkIGVuY3J5cHRpb24ga2V5IGZvciBkYXRhYmFzZQ==';
         expect(DbUtils.isValidEncryptionKey(validKey), true);
 
         // Invalid keys
@@ -154,8 +280,12 @@ void main() {
 
       test('validates migration script', () {
         // Valid scripts
-        expect(DbUtils.isValidMigrationScript('CREATE TABLE users (id INT)'), true);
-        expect(DbUtils.isValidMigrationScript('ALTER TABLE users ADD COLUMN name TEXT'), true);
+        expect(DbUtils.isValidMigrationScript('CREATE TABLE users (id INT)'),
+            true);
+        expect(
+            DbUtils.isValidMigrationScript(
+                'ALTER TABLE users ADD COLUMN name TEXT'),
+            true);
 
         // Invalid scripts
         expect(DbUtils.isValidMigrationScript(''), false);
@@ -201,26 +331,26 @@ void main() {
         expect(DbUtils.isValidSchema(validSchema), true);
 
         // Invalid schemas
-        expect(DbUtils.isValidSchema({}), false); // No tables key
+        expect(DbUtils.isValidSchema(<String, dynamic>{}), false); // No tables key
         expect(DbUtils.isValidSchema({'tables': null}), false);
-        expect(DbUtils.isValidSchema({'tables': {}}), true); // Empty tables is valid
+        expect(DbUtils.isValidSchema({'tables': {}}),
+            true); // Empty tables is valid
 
-        final invalidTableName = {
-          'tables': {
-            'SELECT': { // Reserved word as table name
-              'columns': {'id': 'INTEGER'}
+        // Using explicit typing to fix the type casting error
+        final invalidSchema = <String, dynamic>{
+          'tables': <String, dynamic>{
+            'SELECT': <String, dynamic>{
+              'columns': <String, dynamic>{'id': 'INTEGER'}
             }
           }
         };
-        expect(DbUtils.isValidSchema(invalidTableName), false);
+        expect(DbUtils.isValidSchema(invalidSchema), false);
       });
 
       test('deep copies map', () {
         final original = {
           'level1': {
-            'level2': {
-              'value': 'test'
-            }
+            'level2': {'value': 'test'}
           }
         };
 
@@ -293,29 +423,23 @@ void main() {
     group('SecureHive Tests', () {
       test('opens and uses Hive box', () async {
         final box = await SecureHive.openBox<String>('test_box');
-
         await box.put('test_key', 'test_value');
         final value = box.get('test_key');
-
         expect(value, 'test_value');
-
         await box.close();
       });
 
       test('encrypts Hive data', () async {
-        final box = await SecureHive.openBox<Map<String, dynamic>>('encrypted_box');
-
+        final box =
+        await SecureHive.openBox<Map<String, dynamic>>('encrypted_box');
         final sensitiveData = {
           'ssn': '123-45-6789',
           'creditCard': '4111-1111-1111-1111',
           'password': 'superSecret123',
         };
-
         await box.put('user_data', sensitiveData);
         final retrievedData = box.get('user_data');
-
         expect(retrievedData, equals(sensitiveData));
-
         await box.close();
       });
     });
@@ -348,7 +472,6 @@ void main() {
     group('SecureSQLite Tests', () {
       test('opens and closes database', () async {
         final dbName = 'test_${DateTime.now().millisecondsSinceEpoch}.db';
-
         final db = await SecureSQLite.openDatabase(
           dbName,
           version: 1,
@@ -361,41 +484,34 @@ void main() {
             ''');
           },
         );
-
         expect(db.isOpen, true);
         expect(SecureSQLite.isDatabaseOpen(dbName), true);
         expect(SecureSQLite.openDatabaseCount, greaterThanOrEqualTo(1));
-
         await SecureSQLite.closeDatabase(dbName);
         expect(SecureSQLite.isDatabaseOpen(dbName), false);
       });
 
       test('returns existing database if already open', () async {
         final dbName = 'test_${DateTime.now().millisecondsSinceEpoch}.db';
-
         final db1 = await SecureSQLite.openDatabase(dbName);
         final db2 = await SecureSQLite.openDatabase(dbName);
-
         expect(identical(db1, db2), true);
-
         await SecureSQLite.closeDatabase(dbName);
       });
 
       test('performs health check on databases', () async {
         final dbName = 'test_${DateTime.now().millisecondsSinceEpoch}.db';
-
         await SecureSQLite.openDatabase(dbName);
-
         final health = await SecureSQLite.healthCheck();
         expect(health[dbName], true);
-
         await SecureSQLite.closeDatabase(dbName);
       });
     });
 
     group('SecureDatabase Tests', () {
       late SecureDatabase db;
-      final testDbName = 'test_secure_${DateTime.now().millisecondsSinceEpoch}.db';
+      final testDbName =
+          'test_secure_${DateTime.now().millisecondsSinceEpoch}.db';
 
       setUp(() async {
         db = await SecureSQLite.openDatabase(
@@ -432,16 +548,13 @@ void main() {
           },
           encryptedColumns: ['password', 'metadata'],
         );
-
         expect(userId, greaterThan(0));
-
         final results = await db.query(
           'users',
           where: 'id = ?',
           whereArgs: [userId],
           encryptedColumns: ['password', 'metadata'],
         );
-
         expect(results.length, 1);
         expect(results[0]['name'], 'John Doe');
         expect(results[0]['email'], 'john@example.com');
@@ -459,7 +572,6 @@ void main() {
           },
           encryptedColumns: ['password'],
         );
-
         final updated = await db.update(
           'users',
           {'password': 'newpass'},
@@ -467,16 +579,13 @@ void main() {
           whereArgs: [userId],
           encryptedColumns: ['password'],
         );
-
         expect(updated, 1);
-
         final results = await db.query(
           'users',
           where: 'id = ?',
           whereArgs: [userId],
           encryptedColumns: ['password'],
         );
-
         expect(results[0]['password'], 'newpass');
       });
 
@@ -489,21 +598,17 @@ void main() {
             'password': 'temppass',
           },
         );
-
         final deleted = await db.delete(
           'users',
           where: 'id = ?',
           whereArgs: [userId],
         );
-
         expect(deleted, 1);
-
         final results = await db.query(
           'users',
           where: 'id = ?',
           whereArgs: [userId],
         );
-
         expect(results.isEmpty, true);
       });
 
@@ -514,18 +619,14 @@ void main() {
             'email': 'user1@example.com',
             'password': 'pass1',
           });
-
           await txn.insert('users', {
             'name': 'User 2',
             'email': 'user2@example.com',
             'password': 'pass2',
           });
-
           return true;
         });
-
         expect(result, true);
-
         final count = await db.rawQuery('SELECT COUNT(*) as count FROM users');
         expect(count[0]['count'], greaterThanOrEqualTo(2));
       });
@@ -538,9 +639,9 @@ void main() {
       test('gets table and column names', () async {
         final tables = await db.getTableNames();
         expect(tables, contains('users'));
-
         final columns = await db.getColumnNames('users');
-        expect(columns, containsAll(['id', 'name', 'email', 'password', 'metadata']));
+        expect(columns,
+            containsAll(['id', 'name', 'email', 'password', 'metadata']));
       });
 
       test('gets encrypted columns metadata', () async {
