@@ -1,4 +1,4 @@
-## 1.0.1
+## 1.0.2
 
 * Initial release
 * Unified secure database interface for Hive and SQLite

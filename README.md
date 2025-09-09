@@ -19,7 +19,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  secure_db: ^1.0.0
+  secure_db: ^1.0.2
 ```
 
 Then run:
@@ -74,10 +74,13 @@ print('User: $username ($userId) - Premium: $isPremium');
 Perfect for simple key-value storage, user preferences, and small datasets.
 
 ```dart
-// Open a Hive box
+// Method 1: Through SecureDB factory (recommended)
 final userBox = await SecureDB.hive().openBox<Map<String, dynamic>>('users');
 
-// Store user data
+// Method 2: Direct access
+final userBox = await SecureHive.openBox<Map<String, dynamic>>('users');
+
+// Both methods provide the same functionality
 await userBox.put('user_123', {
   'name': 'John Doe',
   'email': 'john@example.com',
@@ -109,7 +112,7 @@ userBox.watch().listen((BoxEvent event) {
 Ideal for complex data relationships, queries, and larger datasets.
 
 ```dart
-// Open SQLite database
+// Method 1: Through SecureDB factory (recommended)
 final db = await SecureDB.sqlite().openDatabase(
   'app_database.db',
   version: 1,
@@ -128,6 +131,16 @@ final db = await SecureDB.sqlite().openDatabase(
   },
 );
 
+// Method 2: Direct access
+final db = await SecureSQLite.openDatabase(
+  'app_database.db',
+  version: 1,
+  onCreate: (db, version) async {
+    // Same configuration as above
+  },
+);
+
+// Both methods provide identical functionality
 // Insert encrypted data
 await db.insert(
   'users',
@@ -208,14 +221,24 @@ await SecureDB.init(config: DbConfig.production);  // Optimized for production
 // Use your own encryption key
 final customKey = 'your-base64-encoded-256-bit-key';
 
-// For Hive
-final box = await SecureDB.hive().openBox<String>(
+// For Hive - both methods support custom keys
+final box1 = await SecureDB.hive().openBox<String>(
   'secure_box',
   encryptionKey: customKey,
 );
 
-// For SQLite
-final db = await SecureDB.sqlite().openDatabase(
+final box2 = await SecureHive.openBox<String>(
+  'secure_box',
+  encryptionKey: customKey,
+);
+
+// For SQLite - both methods support custom keys
+final db1 = await SecureDB.sqlite().openDatabase(
+  'secure_db.db',
+  encryptionKey: customKey,
+);
+
+final db2 = await SecureSQLite.openDatabase(
   'secure_db.db',
   encryptionKey: customKey,
 );
@@ -336,10 +359,11 @@ final box = await Hive.openBox('myBox');
 await box.put('key', 'value');
 String? value = box.get('key');
 
-// After (SecureDB)
-final box = await SecureDB.hive().openBox<String>('myBox');
-await box.put('key', 'value');
-String? value = box.get('key');
+// After (SecureDB - both methods work)
+final box1 = await SecureDB.hive().openBox<String>('myBox');
+final box2 = await SecureHive.openBox<String>('myBox');
+await box1.put('key', 'value');
+String? value = box1.get('key');
 // All other operations remain the same!
 ```
 
@@ -350,9 +374,10 @@ String? value = box.get('key');
 final db = await openDatabase('mydb.db');
 await db.insert('users', {'name': 'John'});
 
-// After (SecureDB)
-final db = await SecureDB.sqlite().openDatabase('mydb.db');
-await db.insert('users', {'name': 'John'}, encryptedColumns: ['sensitive_field']);
+// After (SecureDB - both methods work)
+final db1 = await SecureDB.sqlite().openDatabase('mydb.db');
+final db2 = await SecureSQLite.openDatabase('mydb.db');
+await db1.insert('users', {'name': 'John'}, encryptedColumns: ['sensitive_field']);
 // Most operations remain the same, just add encryptedColumns when needed!
 ```
 
@@ -402,6 +427,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆕 Changelog
 
+### 1.0.1
+- Fixed static analysis issues for improved code quality
+- Removed debug print statements for cleaner production code
+- Enhanced documentation with dual access method examples
+
 ### 1.0.0
 - Initial release with Hive and SQLite support
 - AES-256-GCM encryption for all data
@@ -413,6 +443,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔗 Links
 
 - [Package on pub.dev](https://pub.dev/packages/secure_db)
-- [GitHub Repository](https://github.com/yourusername/secure_db)
-- [Issue Tracker](https://github.com/yourusername/secure_db/issues)
-- [Documentation](https://github.com/yourusername/secure_db/wiki)# secure_db
+- [GitHub Repository](https://github.com/sank4lp55/secure_db)
+- [Issue Tracker](https://github.com/sank4lp55/secure_db/issues)
+- [Documentation](https://github.com/sank4lp55/secure_db/wiki)
