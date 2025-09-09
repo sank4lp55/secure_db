@@ -142,7 +142,7 @@ class EncryptionService {
         }
       }
     } catch (e) {
-      print('Failed to delete all keys from secure storage: $e');
+      // Silent failure - fallback cache is cleared regardless
     }
 
     // Clear fallback cache

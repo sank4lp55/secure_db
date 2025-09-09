@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'secure_database.dart';
@@ -16,7 +17,7 @@ class SecureSQLite {
     _config = config ?? DbConfig.defaultConfig;
 
     if (_config.enableLogging) {
-      print('SecureSQLite initialized with config: $_config');
+      debugPrint('SecureSQLite initialized with config: $_config');
     }
   }
 
@@ -143,7 +144,6 @@ class SecureSQLite {
 
   /// Lists all database files
   static Future<List<String>> listDatabases() async {
-    final databasePath = _config.databasePath ?? await getDatabasesPath();
 
     try {
       // This would need platform-specific implementation
@@ -318,7 +318,6 @@ class SecureSQLite {
 
     for (final entry in _databases.entries) {
       try {
-        final result = await entry.value.rawQuery('PRAGMA database_list');
         stats[entry.key] = {
           'isOpen': entry.value.isOpen,
           'path': entry.value.path,

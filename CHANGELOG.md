@@ -1,3 +1,7 @@
-## 0.0.1
+## 1.0.0
 
-* TODO: Describe initial release.
+* Initial release
+* Unified secure database interface for Hive and SQLite
+* Automatic encryption/decryption
+* Quick API for simple operations
+* Flutter secure storage integration

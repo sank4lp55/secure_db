@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import '../core/encryption_service.dart';
-import '../models/query_result.dart';
 
 /// A secure wrapper around SQLite database that provides automatic encryption/decryption
 class SecureDatabase {
