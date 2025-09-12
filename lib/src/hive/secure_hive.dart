@@ -24,16 +24,16 @@ class SecureHive {
   ///
   /// Returns a [SecureBox] instance
   Future<SecureBox<T>> openBox<T>(
-      String boxName, {
-        String? encryptionKey,
-      }) async {
+    String boxName, {
+    String? encryptionKey,
+  }) async {
     // Generate or retrieve encryption key
     final key = encryptionKey ??
         await _encryptionService.getOrCreateKey('hive_$boxName');
 
     // Create Hive encryption cipher
     final encryptionCipher =
-    HiveAesCipher(_encryptionService.base64ToUint8List(key));
+        HiveAesCipher(_encryptionService.base64ToUint8List(key));
 
     // Open the underlying Hive box with encryption
     final box = await Hive.openBox<String>(

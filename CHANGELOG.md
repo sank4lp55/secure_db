@@ -1,4 +1,4 @@
-## 1.0.3
+## 1.0.4
 
 * Improved API: Enhanced API consistency with new instance-based access patterns.
 * Dual Access Support: Added better support for both factory methods (SecureDB.hive()) and direct instance access (SecureHive.instance).

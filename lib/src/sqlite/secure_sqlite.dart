@@ -35,13 +35,13 @@ class SecureSQLite {
   ///
   /// Returns a [SecureDatabase] instance
   Future<SecureDatabase> openDatabase(
-      String databaseName, {
-        int? version,
-        Future<void> Function(SecureDatabase db, int version)? onCreate,
-        Future<void> Function(SecureDatabase db, int oldVersion, int newVersion)?
+    String databaseName, {
+    int? version,
+    Future<void> Function(SecureDatabase db, int version)? onCreate,
+    Future<void> Function(SecureDatabase db, int oldVersion, int newVersion)?
         onUpgrade,
-        String? encryptionKey,
-      }) async {
+    String? encryptionKey,
+  }) async {
     // Check if database is already open
     if (_databases.containsKey(databaseName)) {
       return _databases[databaseName]!;
@@ -67,15 +67,15 @@ class SecureSQLite {
         version: version ?? _config.version,
         onCreate: onCreate != null
             ? (db, version) async {
-          final secureDb = SecureDatabase(db, _encryptionService, key);
-          await onCreate(secureDb, version);
-        }
+                final secureDb = SecureDatabase(db, _encryptionService, key);
+                await onCreate(secureDb, version);
+              }
             : null,
         onUpgrade: onUpgrade != null
             ? (db, oldVersion, newVersion) async {
-          final secureDb = SecureDatabase(db, _encryptionService, key);
-          await onUpgrade(secureDb, oldVersion, newVersion);
-        }
+                final secureDb = SecureDatabase(db, _encryptionService, key);
+                await onUpgrade(secureDb, oldVersion, newVersion);
+              }
             : null,
       ),
     );
@@ -89,13 +89,13 @@ class SecureSQLite {
 
   /// Static convenience method for backwards compatibility
   static Future<SecureDatabase> openDatabaseStatic(
-      String databaseName, {
-        int? version,
-        Future<void> Function(SecureDatabase db, int version)? onCreate,
-        Future<void> Function(SecureDatabase db, int oldVersion, int newVersion)?
+    String databaseName, {
+    int? version,
+    Future<void> Function(SecureDatabase db, int version)? onCreate,
+    Future<void> Function(SecureDatabase db, int oldVersion, int newVersion)?
         onUpgrade,
-        String? encryptionKey,
-      }) async {
+    String? encryptionKey,
+  }) async {
     return instance.openDatabase(
       databaseName,
       version: version,
@@ -187,9 +187,9 @@ class SecureSQLite {
 
   /// Executes a batch operation across multiple databases
   Future<void> executeBatch(
-      List<String> databaseNames,
-      Future<void> Function(SecureDatabase db) operation,
-      ) async {
+    List<String> databaseNames,
+    Future<void> Function(SecureDatabase db) operation,
+  ) async {
     for (final dbName in databaseNames) {
       final db = _databases[dbName];
       if (db != null) {
@@ -237,10 +237,10 @@ class SecureSQLite {
 
   /// Executes a SQL query across multiple databases
   Future<Map<String, List<Map<String, Object?>>>> queryMultiple(
-      List<String> databaseNames,
-      String sql, [
-        List<Object?>? arguments,
-      ]) async {
+    List<String> databaseNames,
+    String sql, [
+    List<Object?>? arguments,
+  ]) async {
     final results = <String, List<Map<String, Object?>>>{};
 
     for (final dbName in databaseNames) {
@@ -281,9 +281,9 @@ class SecureSQLite {
 
   /// Creates a backup of a database
   Future<void> backupDatabase(
-      String databaseName,
-      String backupPath,
-      ) async {
+    String databaseName,
+    String backupPath,
+  ) async {
     final db = _databases[databaseName];
     if (db == null) {
       throw StateError('Database $databaseName is not open');
@@ -298,9 +298,9 @@ class SecureSQLite {
 
   /// Restores a database from backup
   Future<void> restoreDatabase(
-      String databaseName,
-      String backupPath,
-      ) async {
+    String databaseName,
+    String backupPath,
+  ) async {
     // Close the database if it's open
     await closeDatabase(databaseName);
 

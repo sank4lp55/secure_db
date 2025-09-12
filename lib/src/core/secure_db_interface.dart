@@ -28,7 +28,8 @@ class SecureDB {
   /// final db = await SecureDB.sqlite().openDatabase('app.db');
   /// ```
   static SecureSQLite sqlite() {
-    return SecureSQLite.instance;  // FIXED: Changed from SecureSQLite() to SecureSQLite.instance
+    return SecureSQLite
+        .instance; // FIXED: Changed from SecureSQLite() to SecureSQLite.instance
   }
 
   /// Quick access method for simple key-value storage using Hive
@@ -74,13 +75,15 @@ class SecureDB {
 
   static Future<void> setMap(String key, Map<String, dynamic> value,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.instance.openBox<Map<String, dynamic>>(boxName);
+    final box =
+        await SecureHive.instance.openBox<Map<String, dynamic>>(boxName);
     await box.put(key, value);
   }
 
   static Future<Map<String, dynamic>?> getMap(String key,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.instance.openBox<Map<String, dynamic>>(boxName);
+    final box =
+        await SecureHive.instance.openBox<Map<String, dynamic>>(boxName);
     return box.get(key);
   }
 

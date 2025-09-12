@@ -19,7 +19,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  secure_db: ^1.0.3
+  secure_db: ^1.0.4
 ```
 
 Then run:
@@ -450,7 +450,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆕 Changelog
 
-### 1.0.3
+### 1.0.4
 - Improved API consistency with instance-based access pattern
 - Enhanced singleton implementation for both Hive and SQLite
 - Better support for both factory and direct instance access methods
