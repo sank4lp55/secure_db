@@ -1,6 +1,6 @@
 name: secure_db
 description: A unified secure database package that provides encrypted storage using both Hive and SQLite with automatic encryption/decryption.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/sank4lp55/secure_db
 repository: https://github.com/sank4lp55/secure_db
 

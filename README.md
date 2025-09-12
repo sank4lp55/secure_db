@@ -19,7 +19,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  secure_db: ^1.0.2
+  secure_db: ^1.0.3
 ```
 
 Then run:
@@ -37,10 +37,10 @@ import 'package:secure_db/secure_db.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize SecureDB with both Hive and SQLite support
   await SecureDB.init();
-  
+
   runApp(MyApp());
 }
 ```
@@ -53,9 +53,9 @@ await SecureDB.setString('username', 'john_doe');
 await SecureDB.setInt('user_id', 12345);
 await SecureDB.setBool('is_premium', true);
 await SecureDB.setMap('user_profile', {
-  'name': 'John Doe',
-  'email': 'john@example.com',
-  'preferences': {'theme': 'dark'}
+'name': 'John Doe',
+'email': 'john@example.com',
+'preferences': {'theme': 'dark'}
 });
 
 // Retrieve data
@@ -77,34 +77,39 @@ Perfect for simple key-value storage, user preferences, and small datasets.
 // Method 1: Through SecureDB factory (recommended)
 final userBox = await SecureDB.hive().openBox<Map<String, dynamic>>('users');
 
-// Method 2: Direct access
-final userBox = await SecureHive.openBox<Map<String, dynamic>>('users');
+// Method 2: Direct instance access
+final userBox = await SecureHive.instance.openBox<Map<String, dynamic>>('users');
 
-// Both methods provide the same functionality
+// Store user data with automatic encryption
 await userBox.put('user_123', {
-  'name': 'John Doe',
-  'email': 'john@example.com',
-  'created_at': DateTime.now().toIso8601String(),
-  'settings': {
-    'theme': 'dark',
-    'notifications': true,
-  }
+'name': 'John Doe',
+'email': 'john@example.com',
+'created_at': DateTime.now().toIso8601String(),
+'settings': {
+'theme': 'dark',
+'notifications': true,
+}
 });
 
-// Retrieve user data
+// Retrieve user data (automatically decrypted)
 Map<String, dynamic>? user = userBox.get('user_123');
 print('User: ${user?['name']}');
 
 // Batch operations
 await userBox.putAll({
-  'user_124': {'name': 'Jane Smith', 'email': 'jane@example.com'},
-  'user_125': {'name': 'Bob Wilson', 'email': 'bob@example.com'},
+'user_124': {'name': 'Jane Smith', 'email': 'jane@example.com'},
+'user_125': {'name': 'Bob Wilson', 'email': 'bob@example.com'},
 });
 
 // Listen to changes
 userBox.watch().listen((BoxEvent event) {
-  print('User ${event.key} was ${event.deleted ? 'deleted' : 'updated'}');
+print('User ${event.key} was ${event.deleted ? 'deleted' : 'updated'}');
 });
+
+// Additional operations via instance
+await SecureHive.instance.closeBox('users');
+await SecureHive.instance.deleteBox('users');
+bool exists = await SecureHive.instance.boxExists('users');
 ```
 
 ### 🗄️ SQLite Storage (SQL)
@@ -131,8 +136,8 @@ final db = await SecureDB.sqlite().openDatabase(
   },
 );
 
-// Method 2: Direct access
-final db = await SecureSQLite.openDatabase(
+// Method 2: Direct instance access
+final db = await SecureSQLite.instance.openDatabase(
   'app_database.db',
   version: 1,
   onCreate: (db, version) async {
@@ -140,7 +145,6 @@ final db = await SecureSQLite.openDatabase(
   },
 );
 
-// Both methods provide identical functionality
 // Insert encrypted data
 await db.insert(
   'users',
@@ -169,6 +173,11 @@ for (final user in users) {
   final profileData = jsonDecode(user['profile_data'] as String);
   print('Name: ${profileData['name']}');
 }
+
+// Additional operations via instance
+await SecureSQLite.instance.closeDatabase('app_database.db');
+await SecureSQLite.instance.deleteDatabase('app_database.db');
+bool exists = await SecureSQLite.instance.databaseExists('app_database.db');
 ```
 
 ### 🔄 Advanced SQLite Operations
@@ -221,24 +230,26 @@ await SecureDB.init(config: DbConfig.production);  // Optimized for production
 // Use your own encryption key
 final customKey = 'your-base64-encoded-256-bit-key';
 
-// For Hive - both methods support custom keys
-final box1 = await SecureDB.hive().openBox<String>(
+// For Hive
+final box = await SecureDB.hive().openBox<String>(
   'secure_box',
   encryptionKey: customKey,
 );
 
-final box2 = await SecureHive.openBox<String>(
+// Or via instance
+final box = await SecureHive.instance.openBox<String>(
   'secure_box',
   encryptionKey: customKey,
 );
 
-// For SQLite - both methods support custom keys
-final db1 = await SecureDB.sqlite().openDatabase(
+// For SQLite
+final db = await SecureDB.sqlite().openDatabase(
   'secure_db.db',
   encryptionKey: customKey,
 );
 
-final db2 = await SecureSQLite.openDatabase(
+// Or via instance
+final db = await SecureSQLite.instance.openDatabase(
   'secure_db.db',
   encryptionKey: customKey,
 );
@@ -276,17 +287,22 @@ final db2 = await SecureSQLite.openDatabase(
 - `closeAll()` - Close all databases
 
 #### Factory Methods
-- `SecureDB.hive()` - Get Hive interface
-- `SecureDB.sqlite()` - Get SQLite interface
+- `SecureDB.hive()` - Returns SecureHive instance
+- `SecureDB.sqlite()` - Returns SecureSQLite instance
 - `SecureDB.init(config)` - Initialize with configuration
 
 ### SecureHive
+
+Access via `SecureDB.hive()` or `SecureHive.instance`:
 
 - `openBox<T>(name, {encryptionKey})` - Open encrypted Hive box
 - `closeBox(name)` - Close specific box
 - `deleteBox(name)` - Delete box and encryption key
 - `boxExists(name)` - Check if box exists
 - `getOpenBoxNames()` - List open boxes
+- `closeAllBoxes()` - Close all open boxes
+- `compactAll()` - Compact all open boxes
+- `getBoxSize(name)` - Get estimated box size
 
 ### SecureBox<T>
 
@@ -308,10 +324,17 @@ final db2 = await SecureSQLite.openDatabase(
 
 ### SecureSQLite
 
+Access via `SecureDB.sqlite()` or `SecureSQLite.instance`:
+
 - `openDatabase(name, {version, onCreate, onUpgrade, encryptionKey})` - Open database
 - `closeDatabase(name)` - Close specific database
 - `deleteDatabase(name)` - Delete database file
 - `databaseExists(name)` - Check if database exists
+- `closeAll()` - Close all databases
+- `getOpenDatabases()` - List open databases
+- `vacuumAll()` - Vacuum all databases
+- `optimizeAll()` - Optimize all databases
+- `enableWalMode()` - Enable WAL mode
 
 ### SecureDatabase
 
@@ -359,11 +382,11 @@ final box = await Hive.openBox('myBox');
 await box.put('key', 'value');
 String? value = box.get('key');
 
-// After (SecureDB - both methods work)
-final box1 = await SecureDB.hive().openBox<String>('myBox');
-final box2 = await SecureHive.openBox<String>('myBox');
-await box1.put('key', 'value');
-String? value = box1.get('key');
+// After (SecureDB)
+final box = await SecureDB.hive().openBox<String>('myBox');
+// Or: final box = await SecureHive.instance.openBox<String>('myBox');
+await box.put('key', 'value');
+String? value = box.get('key');
 // All other operations remain the same!
 ```
 
@@ -374,10 +397,10 @@ String? value = box1.get('key');
 final db = await openDatabase('mydb.db');
 await db.insert('users', {'name': 'John'});
 
-// After (SecureDB - both methods work)
-final db1 = await SecureDB.sqlite().openDatabase('mydb.db');
-final db2 = await SecureSQLite.openDatabase('mydb.db');
-await db1.insert('users', {'name': 'John'}, encryptedColumns: ['sensitive_field']);
+// After (SecureDB)
+final db = await SecureDB.sqlite().openDatabase('mydb.db');
+// Or: final db = await SecureSQLite.instance.openDatabase('mydb.db');
+await db.insert('users', {'name': 'John'}, encryptedColumns: ['sensitive_field']);
 // Most operations remain the same, just add encryptedColumns when needed!
 ```
 
@@ -426,6 +449,12 @@ Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTIN
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆕 Changelog
+
+### 1.0.3
+- Improved API consistency with instance-based access pattern
+- Enhanced singleton implementation for both Hive and SQLite
+- Better support for both factory and direct instance access methods
+- Updated documentation with comprehensive usage examples
 
 ### 1.0.1
 - Fixed static analysis issues for improved code quality

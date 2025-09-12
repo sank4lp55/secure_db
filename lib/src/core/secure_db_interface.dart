@@ -18,7 +18,7 @@ class SecureDB {
   /// final box = await SecureDB.hive().openBox<String>('userSettings');
   /// ```
   static SecureHive hive() {
-    return SecureHive();
+    return SecureHive.instance;
   }
 
   /// Factory method to create SQLite-based secure storage
@@ -28,7 +28,7 @@ class SecureDB {
   /// final db = await SecureDB.sqlite().openDatabase('app.db');
   /// ```
   static SecureSQLite sqlite() {
-    return SecureSQLite();
+    return SecureSQLite.instance;  // FIXED: Changed from SecureSQLite() to SecureSQLite.instance
   }
 
   /// Quick access method for simple key-value storage using Hive
@@ -40,65 +40,65 @@ class SecureDB {
   /// ```
   static Future<void> setString(String key, String value,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<String>(boxName);
+    final box = await SecureHive.instance.openBox<String>(boxName);
     await box.put(key, value);
   }
 
   static Future<String?> getString(String key,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<String>(boxName);
+    final box = await SecureHive.instance.openBox<String>(boxName);
     return box.get(key);
   }
 
   static Future<void> setInt(String key, int value,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<int>(boxName);
+    final box = await SecureHive.instance.openBox<int>(boxName);
     await box.put(key, value);
   }
 
   static Future<int?> getInt(String key, {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<int>(boxName);
+    final box = await SecureHive.instance.openBox<int>(boxName);
     return box.get(key);
   }
 
   static Future<void> setBool(String key, bool value,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<bool>(boxName);
+    final box = await SecureHive.instance.openBox<bool>(boxName);
     await box.put(key, value);
   }
 
   static Future<bool?> getBool(String key, {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<bool>(boxName);
+    final box = await SecureHive.instance.openBox<bool>(boxName);
     return box.get(key);
   }
 
   static Future<void> setMap(String key, Map<String, dynamic> value,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<Map<String, dynamic>>(boxName);
+    final box = await SecureHive.instance.openBox<Map<String, dynamic>>(boxName);
     await box.put(key, value);
   }
 
   static Future<Map<String, dynamic>?> getMap(String key,
       {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox<Map<String, dynamic>>(boxName);
+    final box = await SecureHive.instance.openBox<Map<String, dynamic>>(boxName);
     return box.get(key);
   }
 
   /// Remove a key from storage
   static Future<void> remove(String key, {String boxName = 'default'}) async {
-    final box = await SecureHive.openBox(boxName);
+    final box = await SecureHive.instance.openBox(boxName);
     await box.delete(key);
   }
 
   /// Clear all data from a box
   static Future<void> clearBox(String boxName) async {
-    final box = await SecureHive.openBox(boxName);
+    final box = await SecureHive.instance.openBox(boxName);
     await box.clear();
   }
 
   /// Close all databases and clean up resources
   static Future<void> closeAll() async {
-    await SecureHive.closeAllBoxes();
-    await SecureSQLite.closeAll();
+    await SecureHive.instance.closeAllBoxes();
+    await SecureSQLite.instance.closeAll();
   }
 }

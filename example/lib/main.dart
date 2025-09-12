@@ -62,11 +62,12 @@ class _SecureDbDemoState extends State<SecureDbDemo>
   Future<void> _initDatabases() async {
     try {
       // Initialize Hive box
-      _hiveBox = await SecureHive.openBox<Map<String, dynamic>>('demo_users');
+      _hiveBox =
+          await SecureHive.instance.openBox<Map<String, dynamic>>('demo_users');
       _refreshHiveData();
 
       // Initialize SQLite database
-      _sqliteDb = await SecureSQLite.openDatabase(
+      _sqliteDb = await SecureSQLite.instance.openDatabase(
         'demo_app.db',
         version: 1,
         onCreate: (db, version) async {
