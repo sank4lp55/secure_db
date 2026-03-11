@@ -9,9 +9,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class EncryptionService {
   static const String _keyPrefix = 'secure_db_key_';
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,
     ),

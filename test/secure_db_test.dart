@@ -14,7 +14,7 @@ void main() {
     test('DbConfig has expected values', () {
       expect(DbConfig.development, isNotNull);
       expect(DbConfig.production, isNotNull);
-      expect(DbConfig.testing, isNotNull);
+      expect(DbConfig.defaultConfig, isNotNull);
     });
   });
 }
