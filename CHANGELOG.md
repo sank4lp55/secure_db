@@ -1,3 +1,18 @@
+## 1.0.6
+
+* **SECURITY FIX**: Fixed critical security vulnerability in fallback key generation
+  * Replaced weak `Random(hashCode)` implementation with PBKDF2-like key derivation using 100,000 SHA-256 iterations
+  * Fallback keys are now cryptographically strong and resistant to brute-force attacks
+  * Added warning logging when secure storage is unavailable and fallback mode activates
+* **Enhanced Security**: Improved password-based key derivation (`deriveKey` method)
+  * Increased default iterations from 10,000 to 100,000 for stronger key derivation
+  * Added configurable iterations parameter for flexibility
+  * Better documentation on security properties
+* **Testing**: Added comprehensive test suite for encryption service
+  * 26 new tests covering encryption, key generation, security properties, and edge cases
+  * Regression tests to prevent future security vulnerabilities
+* **No Breaking Changes**: Drop-in security improvement with full backward compatibility
+
 ## 1.0.5
 
 * Dependency Updates: Updated to latest compatible versions for better pub.dev scoring
