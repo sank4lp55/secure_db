@@ -19,7 +19,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  secure_db: ^1.0.4
+  secure_db: ^1.0.8
 ```
 
 Then run:
@@ -355,7 +355,9 @@ Access via `SecureDB.sqlite()` or `SecureSQLite.instance`:
 ## 🔒 Security Features
 
 ### Encryption
-- **Algorithm**: AES-256-GCM for authenticated encryption
+- **Algorithm**: AES-256-GCM (Galois/Counter Mode) for authenticated encryption
+- **Authentication**: Built-in integrity and authenticity verification (AEAD - Authenticated Encryption with Associated Data)
+- **Protection**: Guards against tampering, bit-flipping attacks, and unauthorized modifications
 - **Key Generation**: Cryptographically secure random keys (256-bit)
 - **IV**: Unique initialization vector for each encryption operation
 - **Key Storage**: Platform-specific secure storage (iOS Keychain, Android Keystore)
@@ -449,6 +451,38 @@ Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTIN
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆕 Changelog
+
+### 1.0.8
+- **SECURITY ENHANCEMENT**: Upgraded to AES-256-GCM authenticated encryption
+  - Switched from AES-SIC to AES-GCM for AEAD (Authenticated Encryption with Associated Data)
+  - Now provides built-in integrity and authenticity verification
+  - Protects against tampering, bit-flipping attacks, and unauthorized modifications
+  - Industry-standard encryption mode for modern secure applications
+- Updated `encrypt` package dependency from ^5.0.1 to ^5.0.2 for GCM support
+- Enhanced security documentation with detailed GCM benefits
+- All tests passing with new encryption mode
+- No API changes - existing data will need re-encryption for GCM benefits
+
+### 1.0.7
+- Version skipped due to early release
+
+### 1.0.6
+- **SECURITY FIX**: Fixed critical security vulnerability in fallback key generation
+  - Replaced weak `Random(hashCode)` implementation with PBKDF2-like key derivation using 100,000 SHA-256 iterations
+  - Fallback keys are now cryptographically strong and resistant to brute-force attacks
+  - Added warning logging when secure storage is unavailable and fallback mode activates
+- Enhanced security in password-based key derivation with increased iterations (10,000 → 100,000)
+- Added comprehensive test suite with 26 new tests covering encryption, key generation, and security properties
+- No breaking changes - drop-in security improvement with full backward compatibility
+
+### 1.0.5
+- Updated dependencies to latest compatible versions for better pub.dev scoring
+  - `flutter_secure_storage` 9.0.0 → 10.0.0
+  - `crypto` 3.0.3 → 3.0.7
+  - `sqflite_common_ffi` 2.3.6 → 2.4.0
+  - `flutter_lints` 3.0.0 → 6.0.0
+- Removed deprecated `encryptedSharedPreferences` parameter for Android
+- Improved compatibility with latest Flutter SDK
 
 ### 1.0.4
 - Improved API consistency with instance-based access pattern

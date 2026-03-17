@@ -1,3 +1,23 @@
+## 1.0.8
+
+* **SECURITY ENHANCEMENT**: Upgraded to AES-256-GCM authenticated encryption
+  * Switched from AES-SIC (counter mode) to AES-GCM (Galois/Counter Mode) for AEAD (Authenticated Encryption with Associated Data)
+  * Now provides built-in integrity and authenticity verification in addition to confidentiality
+  * Protects against tampering, bit-flipping attacks, and unauthorized data modifications
+  * Industry-standard encryption mode for modern secure applications
+  * All 28 tests passing with new encryption mode
+* **Dependency Update**: Updated `encrypt` package minimum version
+  * Updated from ^5.0.1 to ^5.0.2 (minimum version for AES-GCM support)
+  * Ensures GCM mode is available in all installations
+* **Documentation**: Enhanced security documentation
+  * Updated README with detailed explanation of GCM benefits
+  * Added authentication and tamper-protection information
+* **No Breaking Changes**: API remains unchanged, existing data will need re-encryption for GCM benefits
+
+## 1.0.7
+
+* Version skipped due to early release
+
 ## 1.0.6
 
 * **SECURITY FIX**: Fixed critical security vulnerability in fallback key generation

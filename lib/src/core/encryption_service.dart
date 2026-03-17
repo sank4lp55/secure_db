@@ -23,15 +23,15 @@ class EncryptionService {
 
   EncryptionService._();
 
-  /// Encrypts data using AES-GCM encryption
+  /// Encrypts data using AES-256-GCM encryption
   String encrypt(String data, String key) {
     try {
       final keyBytes = base64Decode(key);
-      final encrypter = Encrypter(AES(Key(keyBytes)));
+      final encrypter = Encrypter(AES(Key(keyBytes), mode: AESMode.gcm));
       final iv = IV.fromSecureRandom(16);
       final encrypted = encrypter.encrypt(data, iv: iv);
 
-      // Combine IV and encrypted data
+      // Combine IV and encrypted data (encrypted.bytes includes the GCM authentication tag)
       final combined = iv.bytes + encrypted.bytes;
       return base64Encode(combined);
     } catch (e) {
@@ -39,11 +39,11 @@ class EncryptionService {
     }
   }
 
-  /// Decrypts data using AES-GCM encryption
+  /// Decrypts data using AES-256-GCM encryption
   String decrypt(String encryptedData, String key) {
     try {
       final keyBytes = base64Decode(key);
-      final encrypter = Encrypter(AES(Key(keyBytes)));
+      final encrypter = Encrypter(AES(Key(keyBytes), mode: AESMode.gcm));
 
       final combined = base64Decode(encryptedData);
       final iv = IV(combined.sublist(0, 16));
